@@ -407,7 +407,7 @@ public class FormularioCriptografia {
         universidad.setFont(fontLabel);
         universidad.setForeground(COLOR_GRAY_MID);
 
-        JLabel integrantes = new JLabel("Integrantes: Diego Andr\u00e9s L\u00f3pez Rodr\u00edguez, Sandrith Natalia Barreto Alfonso");
+        JLabel integrantes = new JLabel("Integrantes: Diego Andres Lopez Rodriguez, Sandrith Natalia Barreto Alfonso, Luis Alejandro Vargas");
         integrantes.setFont(fontLabel);
         integrantes.setForeground(COLOR_GRAY_MID);
 
