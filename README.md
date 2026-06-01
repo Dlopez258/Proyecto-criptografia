@@ -1,30 +1,30 @@
-# Eje 3 - Criptografia | Fundación Universitaria del Area Andina
+# Eje 4 - Criptografia | Fundación Universitaria del Area Andina
 
 ## Integrantes
 
 | Nombre | Rol |
 |--------|-----|
 | Diego Andrés Lopez Rodriguez | Desarrollador |
-| Sandrith Natalia Barreto Alfonso | Desarrolladora |
-| Luis Alejandro Vargas | Desarrollador |
 
 ---
 
 ## Descripcion
 
-Aplicación Java con interfaz gráfica moderna en Swing que implementa dos módulos de criptografía:
+Aplicación Java con interfaz gráfica moderna en Swing que implementa cuatro módulos de criptografía y análisis:
 
-- **AES (Simétrico):** cifrado con modo GCM, clave de 128 bits e IV aleatorio de 12 bytes.
-- **RSA (Asimétrico):** generación de par de claves de 2048 bits con padding PKCS#1.
+- **AES-256-GCM (Simétrico):** cifrado autenticado con clave de 256 bits e IV aleatorio de 12 bytes.
+- **RSA (Asimétrico):** generación de par de claves de 2048 bits con padding PKCS#1, más descifrado con clave externa (PKCS#8 DER).
+- **Cifrados Clásicos:** implementación de César (desplazamiento 1-25) y Vigenère (clave alfabética).
+- **Funciones HASH:** cálculo de MD5, SHA-1, SHA-256 y SHA-512 con salida hexadecimal y copia al portapapeles.
 
-Toda la entrada y salida de claves y textos cifrados se representa en **Base64** para facilitar su visualización y transporte.
+Toda la entrada/salida de claves y textos cifrados se representa en **Base64** (módulos AES y RSA) o **hexadecimal** (módulo Hash).
 
 ---
 
 ## Requisitos
 
 - JDK 8 o superior
-- No requiere dependencias externas; usa únicamente la biblioteca estándar de Java (`javax.crypto`, `java.security`)
+- No requiere dependencias externas; usa únicamente la biblioteca estándar de Java (`javax.crypto`, `java.security`, `javax.swing`, `java.awt`)
 
 ---
 
@@ -36,10 +36,6 @@ proyecto-criptografia/
 │   ├── FormularioCriptografia.java   # Clase principal: UI + lógica criptográfica
 │   ├── Main.java                     # Plantilla generada por el IDE (no utilizada)
 │   └── resources/
-│       ├── captura-1.png
-│       ├── captura-2.png
-│       ├── captura-3.png
-│       └── captura-4.png
 ├── out/
 │   └── FormularioCriptografia.class  # Clase compilada
 └── README.md
@@ -50,13 +46,13 @@ proyecto-criptografia/
 ## Compilacion y ejecucion
 
 ```powershell
-javac -d out src\FormularioCriptografia.java
+javac -encoding UTF-8 -d out src\FormularioCriptografia.java
 java -cp out FormularioCriptografia
 ```
 
 ---
 
-## Modulo AES (Simetrico)
+## Modulo AES-256-GCM (Simetrico)
 
 ### Parametros técnicos
 
@@ -65,7 +61,7 @@ java -cp out FormularioCriptografia
 | Algoritmo | AES |
 | Modo | GCM (Galois/Counter Mode) |
 | Padding | NoPadding |
-| Tamaño de clave | 128 bits |
+| Tamaño de clave | **256 bits** |
 | Longitud IV | 12 bytes |
 | Tag GCM | 128 bits |
 
@@ -75,7 +71,7 @@ java -cp out FormularioCriptografia
 Mensaje en texto plano
         │
         ▼
-  Generar clave AES (128 bits, SecureRandom)
+  Generar clave AES (256 bits, SecureRandom)
   Generar IV aleatorio (12 bytes)
         │
         ▼
@@ -102,37 +98,49 @@ Mensaje en texto plano
 | Modo | ECB |
 | Padding | PKCS1Padding |
 | Tamaño de clave | 2048 bits |
-| Formato clave privada | PKCS#8 |
+| Formato clave privada | PKCS#8 DER en Base64 |
 
-### Flujo de operacion
+### Subseccion: Descifrado con clave externa
 
-```
-Mensaje en texto plano
-        │
-        ▼
-  Generar par de claves RSA (2048 bits, SecureRandom)
-        │
-        ├──► Clave pública  → cifrar mensaje
-        │         │
-        │         ▼
-        │    RSA/ECB/PKCS1Padding → texto cifrado en Base64
-        │
-        └──► Clave privada (Base64) → almacenada para descifrado
-```
-
-**Descifrado:** se reconstruye la clave privada desde Base64 usando `PKCS8EncodedKeySpec` y se descifra el mensaje.
+Permite descifrar mensajes RSA generados externamente (ej. ejercicios del docente con clave de 512 bits). Se pega el criptograma en Base64 y la clave privada PKCS#8 DER en Base64; la app reconstruye el `PrivateKey` con `PKCS8EncodedKeySpec` y descifra con `RSA/ECB/PKCS1Padding`.
 
 ---
 
-## Capturas
+## Modulo Cifrados Clasicos
 
-| Ventana principal | Modulo AES |
-|:-----------------:|:----------:|
-| ![Captura 1](src/resources/captura-1.png) | ![Captura 2](src/resources/captura-2.png) |
+### Cifrado César
 
-| Cifrado RSA | Descifrado RSA |
-|:-----------:|:--------------:|
-| ![Captura 3](src/resources/captura-3.png) | ![Captura 4](src/resources/captura-4.png) |
+| Parámetro | Valor |
+|-----------|-------|
+| Tipo | Sustitución monoalfabética |
+| Desplazamiento | 1 – 25 (configurable por spinner) |
+| Case | Preservado (mayúsculas y minúsculas independientes) |
+| Caracteres no alfabéticos | Sin modificar |
+
+### Cifrado Vigenère
+
+| Parámetro | Valor |
+|-----------|-------|
+| Tipo | Sustitución polialfabética |
+| Clave | Solo letras (A-Z / a-z); se rechaza si contiene otros caracteres |
+| Case | Preservado |
+| Avance de clave | Solo al procesar caracteres alfabéticos |
+| Caracteres no alfabéticos | Sin modificar |
+
+---
+
+## Modulo Funciones HASH
+
+| Algoritmo | Bits de salida | Uso típico |
+|-----------|---------------|------------|
+| MD5 | 128 bits | Verificación rápida (no criptográfico) |
+| SHA-1 | 160 bits | Legacy, en desuso para seguridad |
+| SHA-256 | 256 bits | Estándar moderno |
+| SHA-512 | 512 bits | Alta seguridad |
+
+- Salida en hexadecimal (minúsculas).
+- Botón **Copiar** copia el hash al portapapeles del sistema (`Toolkit.getDefaultToolkit().getSystemClipboard()`).
+- Implementado con `MessageDigest.getInstance(algoritmo)`, sin dependencias externas.
 
 ---
 
@@ -141,5 +149,6 @@ Mensaje en texto plano
 - **AES/GCM** proporciona cifrado autenticado (confidencialidad + integridad) sin necesidad de un MAC separado.
 - El IV se genera con `SecureRandom` en cada operación de cifrado para garantizar que nunca se reutilice con la misma clave.
 - **RSA/ECB/PKCS1Padding** cifra bloque a bloque; para mensajes largos en producción se recomienda cifrado híbrido (RSA cifra la clave AES).
+- **César y Vigenère** son cifrados históricos incluidos con fines académicos; no ofrecen seguridad real.
 - La interfaz detecta la fuente **Roboto** si está instalada en el sistema; de lo contrario usa **SansSerif** como alternativa.
-- Fecha de entrega: **18 de mayo de 2026**
+- Fecha de entrega: **1 de junio de 2026**
